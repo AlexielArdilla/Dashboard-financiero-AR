@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Financiero - Argentina (Dark Mode)</title>
+    <title>Dashboard Financiero - Argentina</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -37,134 +37,260 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        /* Estilos para la navegación */
+        .nav-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.3s, color 0.3s;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .nav-btn.active {
+            background-color: #4f46e5;
+            color: #ffffff;
+        }
+        .nav-btn:not(.active):hover {
+            background-color: #374151;
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-300">
 
+    <!-- Barra de Navegación -->
+    <nav class="bg-gray-800/80 backdrop-blur-sm sticky top-0 z-50">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+                <span class="text-xl font-bold text-white">FreelanceApplications</span>
+                <div class="flex space-x-4 text-gray-300">
+                    <button id="nav-dashboard" class="nav-btn active">Dashboard</button>
+                    <button id="nav-calculator" class="nav-btn">Calculadora Exterior</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Contenedor Principal -->
     <div class="container mx-auto p-4 md:p-8">
-        <header class="mb-8">
-            <h1 class="text-3xl md:text-4xl font-bold text-white">Dashboard de Inversiones</h1>
-            <p class="text-gray-400 mt-2">Análisis de mercado y cotizaciones en tiempo real.</p>
-            <p class="text-xs text-gray-500 mt-1">Última actualización: <span id="last-update">--:--:--</span></p>
-        </header>
 
-        <!-- Sección de Cotizaciones del Dólar -->
-        <section id="dolar-section" class="mb-8">
-            <h2 class="text-2xl font-semibold mb-4 text-gray-100">Cotizaciones del Dólar</h2>
-            <div id="dolar-loader" class="flex justify-center items-center h-40">
-                <div class="loader"></div>
-            </div>
-            <div id="dolar-cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 hidden">
-                <!-- Las tarjetas de dólar se insertarán aquí dinámicamente -->
-            </div>
-        </section>
+        <!-- Página del Dashboard -->
+        <main id="page-dashboard">
+            <header class="mb-8">
+                <h1 class="text-3xl md:text-4xl font-bold text-white">Dashboard de Inversiones</h1>
+                <p class="text-gray-400 mt-2">Análisis de mercado y cotizaciones en tiempo real.</p>
+                <p class="text-xs text-gray-500 mt-1">Última actualización: <span id="last-update">--:--:--</span></p>
+            </header>
 
-        <!-- Sección de Análisis y Gráficos -->
-        <section id="analysis-section" class="mb-8">
-            <h2 class="text-2xl font-semibold mb-4 text-gray-100">Análisis de Mercado</h2>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                
-                <!-- Gráfico Comparativo de Dólares -->
-                <div class="card">
-                    <h3 class="text-lg font-medium mb-4 text-gray-200">Comparativa de Dólares</h3>
-                    <div id="dolar-chart-container" class="relative h-72">
-                         <canvas id="dolarChart"></canvas>
-                    </div>
+            <!-- Sección de Cotizaciones del Dólar -->
+            <section id="dolar-section" class="mb-8">
+                <h2 class="text-2xl font-semibold mb-4 text-gray-100">Cotizaciones del Dólar</h2>
+                <div id="dolar-loader" class="flex justify-center items-center h-40">
+                    <div class="loader"></div>
                 </div>
+                <div id="dolar-cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 hidden">
+                    <!-- Las tarjetas de dólar se insertarán aquí dinámicamente -->
+                </div>
+            </section>
 
-                <!-- Recomendación de Inversión -->
-                <div class="card bg-indigo-900/30 border-indigo-700">
-                    <h3 class="text-lg font-medium mb-4 text-indigo-300">Recomendación del Día</h3>
-                    <div id="recommendation-loader" class="flex justify-center items-center h-40">
-                        <div class="loader"></div>
+            <!-- Sección de Análisis y Gráficos -->
+            <section id="analysis-section" class="mb-8">
+                <h2 class="text-2xl font-semibold mb-4 text-gray-100">Análisis de Mercado</h2>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="card">
+                        <h3 class="text-lg font-medium mb-4 text-gray-200">Comparativa de Dólares</h3>
+                        <div class="relative h-72"><canvas id="dolarChart"></canvas></div>
                     </div>
-                    <div id="recommendation-content" class="hidden">
-                        <p id="recommendation-text" class="text-gray-300 mb-4">Analizando datos del mercado...</p>
-                        <div class="bg-gray-900/50 p-3 rounded-lg">
-                            <h4 class="font-semibold text-indigo-400">Estrategia sugerida:</h4>
-                            <p id="strategy-text" class="text-sm text-gray-300"></p>
+                    <div class="card bg-indigo-900/30 border-indigo-700">
+                        <h3 class="text-lg font-medium mb-4 text-indigo-300">Recomendación del Día</h3>
+                        <div id="recommendation-loader" class="flex justify-center items-center h-40"><div class="loader"></div></div>
+                        <div id="recommendation-content" class="hidden">
+                            <p id="recommendation-text" class="text-gray-300 mb-4">Analizando datos del mercado...</p>
+                            <div class="bg-gray-900/50 p-3 rounded-lg">
+                                <h4 class="font-semibold text-indigo-400">Estrategia sugerida:</h4>
+                                <p id="strategy-text" class="text-sm text-gray-300"></p>
+                            </div>
                         </div>
+                        <p class="text-xs text-gray-500 mt-4 italic">*Esta recomendación es generada y no constituye asesoramiento profesional.</p>
                     </div>
-                     <p class="text-xs text-gray-500 mt-4 italic">*Esta recomendación es generada automáticamente y no constituye asesoramiento financiero profesional.</p>
+                    <div class="card">
+                        <h3 class="text-lg font-medium mb-4 text-gray-200">Ejemplo de Portafolio Diversificado</h3>
+                        <div class="relative h-72"><canvas id="portfolioChart"></canvas></div>
+                    </div>
+                    <div class="card">
+                        <h3 class="text-lg font-medium mb-4 text-gray-200">Análisis de Activos (Ejemplo)</h3>
+                        <div class="relative h-72"><canvas id="assetChart"></canvas></div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Página de la Calculadora -->
+        <main id="page-calculator" class="hidden">
+            <header class="mb-8">
+                <h1 class="text-3xl md:text-4xl font-bold text-white">Calculadora de Compras en el Exterior</h1>
+                <p class="text-gray-400 mt-2">Estima el costo final en pesos de tus compras en dólares.</p>
+            </header>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Card de la Calculadora -->
+                <div class="card">
+                    <h3 class="text-lg font-medium mb-4 text-gray-200">Ingresar Datos</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="usd-price" class="block text-sm font-medium text-gray-400 mb-1">Precio del producto (USD)</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">$</span>
+                                <input type="number" id="usd-price" class="w-full bg-gray-700 border border-gray-600 rounded-md pl-7 pr-3 py-2 text-white focus:ring-indigo-500 focus:border-indigo-500" placeholder="100.00">
+                            </div>
+                        </div>
+                        <button id="calculate-btn" class="w-full bg-indigo-600 text-white font-bold py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-indigo-500 disabled:bg-gray-500 disabled:cursor-not-allowed">
+                            Calcular
+                        </button>
+                    </div>
                 </div>
 
-                <!-- Gráfico de Portafolio (Torta) -->
+                <!-- Card de Resultados -->
                 <div class="card">
-                    <h3 class="text-lg font-medium mb-4 text-gray-200">Ejemplo de Portafolio Diversificado</h3>
-                     <div id="portfolio-chart-container" class="relative h-72">
-                        <canvas id="portfolioChart"></canvas>
-                    </div>
-                </div>
-
-                <!-- Análisis de Activos (Mock) -->
-                <div class="card">
-                    <h3 class="text-lg font-medium mb-4 text-gray-200">Análisis de Activos (Ejemplo)</h3>
-                    <div id="asset-chart-container" class="relative h-72">
-                        <canvas id="assetChart"></canvas>
-                    </div>
+                     <h3 class="text-lg font-medium mb-4 text-gray-200">Resultado del Cálculo</h3>
+                     <div id="calculator-result" class="space-y-3 hidden">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-400">Cotización Dólar Oficial (Venta):</span>
+                            <span id="result-dolar-oficial" class="font-semibold text-white"></span>
+                        </div>
+                        <hr class="border-gray-700">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-400">Subtotal (Producto en ARS):</span>
+                            <span id="result-subtotal" class="font-semibold text-white"></span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-400">Impuesto PAIS (30%):</span>
+                            <span id="result-pais" class="font-semibold text-green-400"></span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-400">Percepción Ganancias (30%):</span>
+                            <span id="result-ganancias" class="font-semibold text-green-400"></span>
+                        </div>
+                        <hr class="border-gray-600 my-2">
+                        <div class="flex justify-between items-center text-xl mt-4">
+                            <span class="font-bold text-indigo-400">TOTAL EN PESOS:</span>
+                            <span id="result-total" class="font-bold text-indigo-400"></span>
+                        </div>
+                     </div>
+                     <div id="calculator-prompt" class="text-center text-gray-500">
+                        <p>Ingresa un valor para ver el resultado.</p>
+                     </div>
                 </div>
             </div>
-        </section>
+        </main>
 
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // Variables globales del script
+            let dolarDataCache = [];
+            let dolarChart = null, portfolioChart = null, assetChart = null;
+            const chartTextColor = '#d1d5db';
+            const chartGridColor = 'rgba(255, 255, 255, 0.1)';
+
+            // Elementos del DOM
+            const pageDashboard = document.getElementById('page-dashboard');
+            const pageCalculator = document.getElementById('page-calculator');
+            const navDashboard = document.getElementById('nav-dashboard');
+            const navCalculator = document.getElementById('nav-calculator');
+            
             const dolarCardsContainer = document.getElementById('dolar-cards');
             const dolarLoader = document.getElementById('dolar-loader');
             const recommendationContent = document.getElementById('recommendation-content');
             const recommendationLoader = document.getElementById('recommendation-loader');
             const lastUpdateSpan = document.getElementById('last-update');
 
-            let dolarChart = null;
-            let portfolioChart = null;
-            let assetChart = null;
-            
-            const chartTextColor = '#d1d5db'; // text-gray-300
-            const chartGridColor = 'rgba(255, 255, 255, 0.1)';
+            // Elementos de la calculadora
+            const calculateBtn = document.getElementById('calculate-btn');
+            const usdPriceInput = document.getElementById('usd-price');
+            const calculatorResultDiv = document.getElementById('calculator-result');
+            const calculatorPromptDiv = document.getElementById('calculator-prompt');
 
-            // Función para formatear números como moneda
+            // --- Lógica de Navegación ---
+            function showPage(pageId) {
+                pageDashboard.classList.add('hidden');
+                pageCalculator.classList.add('hidden');
+                navDashboard.classList.remove('active');
+                navCalculator.classList.remove('active');
+
+                if (pageId === 'dashboard') {
+                    pageDashboard.classList.remove('hidden');
+                    navDashboard.classList.add('active');
+                } else if (pageId === 'calculator') {
+                    pageCalculator.classList.remove('hidden');
+                    navCalculator.classList.add('active');
+                }
+            }
+
+            navDashboard.addEventListener('click', () => showPage('dashboard'));
+            navCalculator.addEventListener('click', () => showPage('calculator'));
+
+            // --- Lógica de la Calculadora ---
+            calculateBtn.addEventListener('click', () => {
+                const usdPrice = parseFloat(usdPriceInput.value);
+                const dolarOficial = dolarDataCache.find(d => d.casa === 'oficial');
+
+                if (!usdPrice || usdPrice <= 0 || !dolarOficial) {
+                    alert('Por favor, ingresa un precio válido en USD. Los datos del dólar deben estar cargados.');
+                    return;
+                }
+
+                const oficialVenta = dolarOficial.venta;
+                const subtotal = usdPrice * oficialVenta;
+                const impuestoPais = subtotal * 0.30;
+                const percepcionGanancias = subtotal * 0.30;
+                const total = subtotal + impuestoPais + percepcionGanancias;
+
+                document.getElementById('result-dolar-oficial').textContent = formatCurrency(oficialVenta);
+                document.getElementById('result-subtotal').textContent = formatCurrency(subtotal);
+                document.getElementById('result-pais').textContent = formatCurrency(impuestoPais);
+                document.getElementById('result-ganancias').textContent = formatCurrency(percepcionGanancias);
+                document.getElementById('result-total').textContent = formatCurrency(total);
+
+                calculatorPromptDiv.classList.add('hidden');
+                calculatorResultDiv.classList.remove('hidden');
+            });
+
+
+            // --- Lógica del Dashboard ---
             const formatCurrency = (value) => {
                 if (typeof value !== 'number') return 'N/A';
                 return value.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' });
             };
 
-            // Función para obtener y mostrar las cotizaciones del dólar
             async function fetchDolarData() {
                 try {
                     const response = await fetch('https://dolarapi.com/v1/dolares');
                     if (!response.ok) throw new Error('Error al cargar los datos del dólar.');
                     const data = await response.json();
+                    dolarDataCache = data; // Guardar datos en caché
 
-                    dolarCardsContainer.innerHTML = ''; // Limpiar tarjetas anteriores
-                    
                     const relevantDolares = data.filter(d => ['oficial', 'blue', 'bolsa', 'contado_con_liqui'].includes(d.casa));
 
+                    dolarCardsContainer.innerHTML = '';
                     relevantDolares.forEach(dolar => {
                         const card = document.createElement('div');
                         card.className = 'card flex flex-col justify-between';
-                        
                         let name = dolar.nombre;
                         if (dolar.casa === 'bolsa') name = 'Dólar MEP';
                         if (dolar.casa === 'contado_con_liqui') name = 'Dólar CCL';
-
                         card.innerHTML = `
-                            <div>
-                                <h3 class="font-bold text-xl text-gray-200">${name}</h3>
-                            </div>
+                            <div><h3 class="font-bold text-xl text-gray-200">${name}</h3></div>
                             <div class="mt-4">
                                 <p class="text-sm text-gray-400">Compra</p>
                                 <p class="text-2xl font-semibold text-green-400">${formatCurrency(dolar.compra)}</p>
                                 <p class="text-sm text-gray-400 mt-2">Venta</p>
                                 <p class="text-2xl font-semibold text-red-400">${formatCurrency(dolar.venta)}</p>
-                            </div>
-                        `;
+                            </div>`;
                         dolarCardsContainer.appendChild(card);
                     });
 
                     dolarLoader.classList.add('hidden');
                     dolarCardsContainer.classList.remove('hidden');
-                    
                     lastUpdateSpan.textContent = new Date().toLocaleTimeString('es-AR');
 
                     updateDolarChart(relevantDolares);
@@ -178,65 +304,26 @@
             
             function updateDolarChart(data) {
                 const ctx = document.getElementById('dolarChart').getContext('2d');
-                const labels = data.map(d => {
-                    if (d.casa === 'bolsa') return 'MEP';
-                    if (d.casa === 'contado_con_liqui') return 'CCL';
-                    return d.nombre;
-                });
-                const ventaData = data.map(d => d.venta);
-                const compraData = data.map(d => d.compra);
-
-                if (dolarChart) {
-                    dolarChart.destroy();
-                }
-
+                const labels = data.map(d => d.casa === 'bolsa' ? 'MEP' : (d.casa === 'contado_con_liqui' ? 'CCL' : d.nombre));
+                if (dolarChart) dolarChart.destroy();
                 dolarChart = new Chart(ctx, {
                     type: 'bar',
                     data: {
                         labels: labels,
                         datasets: [
-                            {
-                                label: 'Venta',
-                                data: ventaData,
-                                backgroundColor: 'rgba(248, 113, 113, 0.6)', // red-400
-                                borderColor: 'rgba(248, 113, 113, 1)',
-                                borderWidth: 1
-                            },
-                            {
-                                label: 'Compra',
-                                data: compraData,
-                                backgroundColor: 'rgba(74, 222, 128, 0.6)', // green-400
-                                borderColor: 'rgba(74, 222, 128, 1)',
-                                borderWidth: 1
-                            }
+                            { label: 'Venta', data: data.map(d => d.venta), backgroundColor: 'rgba(248, 113, 113, 0.6)', borderColor: 'rgba(248, 113, 113, 1)', borderWidth: 1 },
+                            { label: 'Compra', data: data.map(d => d.compra), backgroundColor: 'rgba(74, 222, 128, 0.6)', borderColor: 'rgba(74, 222, 128, 1)', borderWidth: 1 }
                         ]
                     },
                     options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
+                        responsive: true, maintainAspectRatio: false,
                         scales: {
-                            y: {
-                                beginAtZero: false,
-                                ticks: { color: chartTextColor, callback: value => formatCurrency(value) },
-                                grid: { color: chartGridColor }
-                            },
-                            x: {
-                                ticks: { color: chartTextColor },
-                                grid: { color: 'transparent' }
-                            }
+                            y: { beginAtZero: false, ticks: { color: chartTextColor, callback: value => formatCurrency(value) }, grid: { color: chartGridColor } },
+                            x: { ticks: { color: chartTextColor }, grid: { color: 'transparent' } }
                         },
                         plugins: {
                             legend: { labels: { color: chartTextColor } },
-                            tooltip: {
-                                titleColor: '#ffffff',
-                                bodyColor: '#dddddd',
-                                backgroundColor: '#1f2937',
-                                borderColor: '#374151',
-                                borderWidth: 1,
-                                callbacks: {
-                                    label: context => `${context.dataset.label || ''}: ${formatCurrency(context.parsed.y)}`
-                                }
-                            }
+                            tooltip: { callbacks: { label: context => `${context.dataset.label || ''}: ${formatCurrency(context.parsed.y)}` } }
                         }
                     }
                 });
@@ -246,28 +333,17 @@
                 const oficial = data.find(d => d.casa === 'oficial');
                 const blue = data.find(d => d.casa === 'blue');
                 const mep = data.find(d => d.casa === 'bolsa');
-
-                let recommendationText = "No se pudo generar una recomendación.";
-                let strategyText = "Datos insuficientes.";
-
+                let recommendationText = "No se pudo generar una recomendación.", strategyText = "Datos insuficientes.";
                 if (oficial && blue && mep) {
                     const brechaBlue = ((blue.venta / oficial.venta) - 1) * 100;
                     const brechaMep = ((mep.venta / oficial.venta) - 1) * 100;
-
-                    recommendationText = `La brecha entre el Dólar Blue y el Oficial es del <strong>${brechaBlue.toFixed(2)}%</strong>. La brecha con el Dólar MEP es del <strong>${brechaMep.toFixed(2)}%</strong>.`;
-
-                    if (brechaBlue > 100) {
-                        strategyText = "Con una brecha elevada, los activos dolarizados o la compra de dólar MEP (si es posible) pueden ser una cobertura atractiva contra la devaluación.";
-                    } else if (brechaBlue < 80) {
-                         strategyText = "Una brecha más controlada podría indicar mayor estabilidad. Inversiones en pesos que ajusten por inflación (CER) pueden ser una alternativa interesante.";
-                    } else {
-                        strategyText = "El mercado muestra una tensión moderada. Se recomienda una cartera diversificada entre activos en pesos y dólares para mitigar riesgos."
-                    }
+                    recommendationText = `La brecha Blue/Oficial es del <strong>${brechaBlue.toFixed(2)}%</strong>. La brecha MEP/Oficial es del <strong>${brechaMep.toFixed(2)}%</strong>.`;
+                    if (brechaBlue > 100) strategyText = "Brecha elevada: activos dolarizados o dólar MEP pueden ser una cobertura atractiva.";
+                    else if (brechaBlue < 80) strategyText = "Brecha controlada: inversiones en pesos que ajusten por inflación (CER) pueden ser una alternativa.";
+                    else strategyText = "Tensión moderada: se recomienda una cartera diversificada entre pesos y dólares.";
                 }
-                
                 document.getElementById('recommendation-text').innerHTML = recommendationText;
                 document.getElementById('strategy-text').textContent = strategyText;
-                
                 recommendationLoader.classList.add('hidden');
                 recommendationContent.classList.remove('hidden');
             }
@@ -278,82 +354,46 @@
                 portfolioChart = new Chart(ctx, {
                     type: 'pie',
                     data: {
-                        labels: ['Acciones (CEDEARs)', 'Obligaciones Negociables', 'Fondos Comunes (FCI)', 'Dólar MEP', 'Plazo Fijo UVA'],
+                        labels: ['Acciones (CEDEARs)', 'Obligaciones Negociables', 'FCI', 'Dólar MEP', 'Plazo Fijo UVA'],
                         datasets: [{
-                            label: 'Distribución del Portafolio',
                             data: [35, 25, 20, 15, 5],
-                            backgroundColor: [
-                                'rgba(99, 102, 241, 0.8)',
-                                'rgba(34, 197, 94, 0.8)',
-                                'rgba(251, 146, 60, 0.8)',
-                                'rgba(167, 139, 250, 0.8)',
-                                'rgba(248, 113, 113, 0.8)'
-                            ],
-                            borderColor: '#1f2937', // bg-gray-800
-                            borderWidth: 2
+                            backgroundColor: ['#6366f1', '#22c55e', '#f97316', '#a855f7', '#ef4444'],
+                            borderColor: '#1f2937', borderWidth: 2
                         }]
                     },
                     options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: { position: 'top', labels: { color: chartTextColor } },
-                            tooltip: {
-                                callbacks: {
-                                    label: context => `${context.label || ''}: ${context.parsed}%`
-                                }
-                            }
-                        }
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { position: 'top', labels: { color: chartTextColor } }, tooltip: { callbacks: { label: context => `${context.label || ''}: ${context.parsed}%` } } }
                     }
                 });
             }
 
             function createAssetChart() {
                 const ctx = document.getElementById('assetChart').getContext('2d');
-                const labels = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul'];
-                const data = [1200, 1250, 1300, 1280, 1350, 1400, 1420];
-
                 if (assetChart) assetChart.destroy();
                 assetChart = new Chart(ctx, {
                     type: 'line',
                     data: {
-                        labels: labels,
+                        labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul'],
                         datasets: [{
                             label: 'Acción "GALICIA" (GGAL)',
-                            data: data,
-                            fill: true,
-                            backgroundColor: 'rgba(79, 70, 229, 0.2)',
-                            borderColor: 'rgba(99, 102, 241, 1)',
-                            tension: 0.3,
-                            pointBackgroundColor: 'rgba(99, 102, 241, 1)',
-                            pointBorderColor: '#fff'
+                            data: [1200, 1250, 1300, 1280, 1350, 1400, 1420],
+                            fill: true, backgroundColor: 'rgba(79, 70, 229, 0.2)',
+                            borderColor: 'rgba(99, 102, 241, 1)', tension: 0.3
                         }]
                     },
                     options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
+                        responsive: true, maintainAspectRatio: false,
                         scales: {
-                             y: {
-                                ticks: { color: chartTextColor, callback: value => formatCurrency(value) },
-                                grid: { color: chartGridColor }
-                             },
-                             x: {
-                                ticks: { color: chartTextColor },
-                                grid: { color: 'transparent' }
-                             }
+                             y: { ticks: { color: chartTextColor, callback: value => formatCurrency(value) }, grid: { color: chartGridColor } },
+                             x: { ticks: { color: chartTextColor }, grid: { color: 'transparent' } }
                         },
-                        plugins: {
-                            legend: { labels: { color: chartTextColor } },
-                            tooltip: {
-                                callbacks: {
-                                    label: context => `Precio: ${formatCurrency(context.parsed.y)}`
-                                }
-                            }
-                        }
+                        plugins: { legend: { display: false }, tooltip: { callbacks: { label: context => `Precio: ${formatCurrency(context.parsed.y)}` } } }
                     }
                 });
             }
 
+            // Inicialización
             fetchDolarData();
             createPortfolioChart();
             createAssetChart();
