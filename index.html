@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Financiero - Argentina (Dark Mode)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .card {
+            background-color: #1f2937; /* bg-gray-800 */
+            border-radius: 0.75rem;
+            border: 1px solid #374151; /* border-gray-700 */
+            padding: 1.5rem;
+            transition: all 0.3s ease-in-out;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: #4f46e5; /* indigo-600 */
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+        }
+        .loader {
+            border: 4px solid #374151; /* border-gray-700 */
+            border-radius: 50%;
+            border-top: 4px solid #4f46e5; /* indigo-500 */
+            width: 40px;
+            height: 40px;
+            animation: spin 2s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-300">
+
+    <div class="container mx-auto p-4 md:p-8">
+        <header class="mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-white">Dashboard de Inversiones</h1>
+            <p class="text-gray-400 mt-2">Análisis de mercado y cotizaciones en tiempo real.</p>
+            <p class="text-xs text-gray-500 mt-1">Última actualización: <span id="last-update">--:--:--</span></p>
+        </header>
+
+        <!-- Sección de Cotizaciones del Dólar -->
+        <section id="dolar-section" class="mb-8">
+            <h2 class="text-2xl font-semibold mb-4 text-gray-100">Cotizaciones del Dólar</h2>
+            <div id="dolar-loader" class="flex justify-center items-center h-40">
+                <div class="loader"></div>
+            </div>
+            <div id="dolar-cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 hidden">
+                <!-- Las tarjetas de dólar se insertarán aquí dinámicamente -->
+            </div>
+        </section>
+
+        <!-- Sección de Análisis y Gráficos -->
+        <section id="analysis-section" class="mb-8">
+            <h2 class="text-2xl font-semibold mb-4 text-gray-100">Análisis de Mercado</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                
+                <!-- Gráfico Comparativo de Dólares -->
+                <div class="card">
+                    <h3 class="text-lg font-medium mb-4 text-gray-200">Comparativa de Dólares</h3>
+                    <div id="dolar-chart-container" class="relative h-72">
+                         <canvas id="dolarChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Recomendación de Inversión -->
+                <div class="card bg-indigo-900/30 border-indigo-700">
+                    <h3 class="text-lg font-medium mb-4 text-indigo-300">Recomendación del Día</h3>
+                    <div id="recommendation-loader" class="flex justify-center items-center h-40">
+                        <div class="loader"></div>
+                    </div>
+                    <div id="recommendation-content" class="hidden">
+                        <p id="recommendation-text" class="text-gray-300 mb-4">Analizando datos del mercado...</p>
+                        <div class="bg-gray-900/50 p-3 rounded-lg">
+                            <h4 class="font-semibold text-indigo-400">Estrategia sugerida:</h4>
+                            <p id="strategy-text" class="text-sm text-gray-300"></p>
+                        </div>
+                    </div>
+                     <p class="text-xs text-gray-500 mt-4 italic">*Esta recomendación es generada automáticamente y no constituye asesoramiento financiero profesional.</p>
+                </div>
+
+                <!-- Gráfico de Portafolio (Torta) -->
+                <div class="card">
+                    <h3 class="text-lg font-medium mb-4 text-gray-200">Ejemplo de Portafolio Diversificado</h3>
+                     <div id="portfolio-chart-container" class="relative h-72">
+                        <canvas id="portfolioChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Análisis de Activos (Mock) -->
+                <div class="card">
+                    <h3 class="text-lg font-medium mb-4 text-gray-200">Análisis de Activos (Ejemplo)</h3>
+                    <div id="asset-chart-container" class="relative h-72">
+                        <canvas id="assetChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const dolarCardsContainer = document.getElementById('dolar-cards');
+            const dolarLoader = document.getElementById('dolar-loader');
+            const recommendationContent = document.getElementById('recommendation-content');
+            const recommendationLoader = document.getElementById('recommendation-loader');
+            const lastUpdateSpan = document.getElementById('last-update');
+
+            let dolarChart = null;
+            let portfolioChart = null;
+            let assetChart = null;
+            
+            const chartTextColor = '#d1d5db'; // text-gray-300
+            const chartGridColor = 'rgba(255, 255, 255, 0.1)';
+
+            // Función para formatear números como moneda
+            const formatCurrency = (value) => {
+                if (typeof value !== 'number') return 'N/A';
+                return value.toLocaleString('es-AR', { style: 'currency', currency: 'ARS' });
+            };
+
+            // Función para obtener y mostrar las cotizaciones del dólar
+            async function fetchDolarData() {
+                try {
+                    const response = await fetch('https://dolarapi.com/v1/dolares');
+                    if (!response.ok) throw new Error('Error al cargar los datos del dólar.');
+                    const data = await response.json();
+
+                    dolarCardsContainer.innerHTML = ''; // Limpiar tarjetas anteriores
+                    
+                    const relevantDolares = data.filter(d => ['oficial', 'blue', 'bolsa', 'contado_con_liqui'].includes(d.casa));
+
+                    relevantDolares.forEach(dolar => {
+                        const card = document.createElement('div');
+                        card.className = 'card flex flex-col justify-between';
+                        
+                        let name = dolar.nombre;
+                        if (dolar.casa === 'bolsa') name = 'Dólar MEP';
+                        if (dolar.casa === 'contado_con_liqui') name = 'Dólar CCL';
+
+                        card.innerHTML = `
+                            <div>
+                                <h3 class="font-bold text-xl text-gray-200">${name}</h3>
+                            </div>
+                            <div class="mt-4">
+                                <p class="text-sm text-gray-400">Compra</p>
+                                <p class="text-2xl font-semibold text-green-400">${formatCurrency(dolar.compra)}</p>
+                                <p class="text-sm text-gray-400 mt-2">Venta</p>
+                                <p class="text-2xl font-semibold text-red-400">${formatCurrency(dolar.venta)}</p>
+                            </div>
+                        `;
+                        dolarCardsContainer.appendChild(card);
+                    });
+
+                    dolarLoader.classList.add('hidden');
+                    dolarCardsContainer.classList.remove('hidden');
+                    
+                    lastUpdateSpan.textContent = new Date().toLocaleTimeString('es-AR');
+
+                    updateDolarChart(relevantDolares);
+                    generateRecommendation(relevantDolares);
+
+                } catch (error) {
+                    console.error("Error fetching dolar data:", error);
+                    dolarLoader.innerHTML = `<p class="text-red-500">${error.message}</p>`;
+                }
+            }
+            
+            function updateDolarChart(data) {
+                const ctx = document.getElementById('dolarChart').getContext('2d');
+                const labels = data.map(d => {
+                    if (d.casa === 'bolsa') return 'MEP';
+                    if (d.casa === 'contado_con_liqui') return 'CCL';
+                    return d.nombre;
+                });
+                const ventaData = data.map(d => d.venta);
+                const compraData = data.map(d => d.compra);
+
+                if (dolarChart) {
+                    dolarChart.destroy();
+                }
+
+                dolarChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Venta',
+                                data: ventaData,
+                                backgroundColor: 'rgba(248, 113, 113, 0.6)', // red-400
+                                borderColor: 'rgba(248, 113, 113, 1)',
+                                borderWidth: 1
+                            },
+                            {
+                                label: 'Compra',
+                                data: compraData,
+                                backgroundColor: 'rgba(74, 222, 128, 0.6)', // green-400
+                                borderColor: 'rgba(74, 222, 128, 1)',
+                                borderWidth: 1
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                ticks: { color: chartTextColor, callback: value => formatCurrency(value) },
+                                grid: { color: chartGridColor }
+                            },
+                            x: {
+                                ticks: { color: chartTextColor },
+                                grid: { color: 'transparent' }
+                            }
+                        },
+                        plugins: {
+                            legend: { labels: { color: chartTextColor } },
+                            tooltip: {
+                                titleColor: '#ffffff',
+                                bodyColor: '#dddddd',
+                                backgroundColor: '#1f2937',
+                                borderColor: '#374151',
+                                borderWidth: 1,
+                                callbacks: {
+                                    label: context => `${context.dataset.label || ''}: ${formatCurrency(context.parsed.y)}`
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            function generateRecommendation(data) {
+                const oficial = data.find(d => d.casa === 'oficial');
+                const blue = data.find(d => d.casa === 'blue');
+                const mep = data.find(d => d.casa === 'bolsa');
+
+                let recommendationText = "No se pudo generar una recomendación.";
+                let strategyText = "Datos insuficientes.";
+
+                if (oficial && blue && mep) {
+                    const brechaBlue = ((blue.venta / oficial.venta) - 1) * 100;
+                    const brechaMep = ((mep.venta / oficial.venta) - 1) * 100;
+
+                    recommendationText = `La brecha entre el Dólar Blue y el Oficial es del <strong>${brechaBlue.toFixed(2)}%</strong>. La brecha con el Dólar MEP es del <strong>${brechaMep.toFixed(2)}%</strong>.`;
+
+                    if (brechaBlue > 100) {
+                        strategyText = "Con una brecha elevada, los activos dolarizados o la compra de dólar MEP (si es posible) pueden ser una cobertura atractiva contra la devaluación.";
+                    } else if (brechaBlue < 80) {
+                         strategyText = "Una brecha más controlada podría indicar mayor estabilidad. Inversiones en pesos que ajusten por inflación (CER) pueden ser una alternativa interesante.";
+                    } else {
+                        strategyText = "El mercado muestra una tensión moderada. Se recomienda una cartera diversificada entre activos en pesos y dólares para mitigar riesgos."
+                    }
+                }
+                
+                document.getElementById('recommendation-text').innerHTML = recommendationText;
+                document.getElementById('strategy-text').textContent = strategyText;
+                
+                recommendationLoader.classList.add('hidden');
+                recommendationContent.classList.remove('hidden');
+            }
+
+            function createPortfolioChart() {
+                const ctx = document.getElementById('portfolioChart').getContext('2d');
+                if (portfolioChart) portfolioChart.destroy();
+                portfolioChart = new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: ['Acciones (CEDEARs)', 'Obligaciones Negociables', 'Fondos Comunes (FCI)', 'Dólar MEP', 'Plazo Fijo UVA'],
+                        datasets: [{
+                            label: 'Distribución del Portafolio',
+                            data: [35, 25, 20, 15, 5],
+                            backgroundColor: [
+                                'rgba(99, 102, 241, 0.8)',
+                                'rgba(34, 197, 94, 0.8)',
+                                'rgba(251, 146, 60, 0.8)',
+                                'rgba(167, 139, 250, 0.8)',
+                                'rgba(248, 113, 113, 0.8)'
+                            ],
+                            borderColor: '#1f2937', // bg-gray-800
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'top', labels: { color: chartTextColor } },
+                            tooltip: {
+                                callbacks: {
+                                    label: context => `${context.label || ''}: ${context.parsed}%`
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            function createAssetChart() {
+                const ctx = document.getElementById('assetChart').getContext('2d');
+                const labels = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul'];
+                const data = [1200, 1250, 1300, 1280, 1350, 1400, 1420];
+
+                if (assetChart) assetChart.destroy();
+                assetChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Acción "GALICIA" (GGAL)',
+                            data: data,
+                            fill: true,
+                            backgroundColor: 'rgba(79, 70, 229, 0.2)',
+                            borderColor: 'rgba(99, 102, 241, 1)',
+                            tension: 0.3,
+                            pointBackgroundColor: 'rgba(99, 102, 241, 1)',
+                            pointBorderColor: '#fff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                             y: {
+                                ticks: { color: chartTextColor, callback: value => formatCurrency(value) },
+                                grid: { color: chartGridColor }
+                             },
+                             x: {
+                                ticks: { color: chartTextColor },
+                                grid: { color: 'transparent' }
+                             }
+                        },
+                        plugins: {
+                            legend: { labels: { color: chartTextColor } },
+                            tooltip: {
+                                callbacks: {
+                                    label: context => `Precio: ${formatCurrency(context.parsed.y)}`
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            fetchDolarData();
+            createPortfolioChart();
+            createAssetChart();
+            setInterval(fetchDolarData, 300000); // Actualizar cada 5 minutos
+        });
+    </script>
+</body>
+</html>
