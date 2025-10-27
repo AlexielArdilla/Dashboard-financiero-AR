@@ -242,8 +242,10 @@
 
                 const oficialVenta = dolarOficial.venta;
                 const subtotal = usdPrice * oficialVenta;
-                const impuestoPais = subtotal * 0.30;
-                const percepcionGanancias = subtotal * 0.30;
+                //ya no se paga Impuesto País
+                const impuestoPais = 0;
+                // se paga 0.21 y 0.3 los sumé
+                const percepcionGanancias = subtotal * 0.23;
                 const total = subtotal + impuestoPais + percepcionGanancias;
 
                 document.getElementById('result-dolar-oficial').textContent = formatCurrency(oficialVenta);
